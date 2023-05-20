@@ -1,9 +1,24 @@
 import uvicorn
 from fastapi import FastAPI, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+import PIL.Image as Image
+import ocr
 import predict
 import os
 
 app = FastAPI()
+
+origins = [
+    "*"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/")
@@ -11,8 +26,7 @@ async def home():
     return {"info": "Nothing to see here"}
 
 
-@app.post("/upload_image/")
-async def create_upload_file(file: UploadFile):
+async def write_file(file):
     # Create media folder if not exists
     if not os.path.exists("media"):
         try:
@@ -24,10 +38,23 @@ async def create_upload_file(file: UploadFile):
     with open(file_location, "wb+") as file_obj:
         file_obj.write(file.file.read())
 
+    return file_location
+
+
+@app.post("/hwrc/")
+async def create_upload_file(file: UploadFile):
+    file_location = await write_file(file)
     predict_handwriting = predict.predict_character(file_location)
     print(predict_handwriting)
     return {"predicted_handwriting": f'{predict_handwriting}'}
 
+
+@app.post("/ocr/")
+async def create_upload_file(file: UploadFile):
+    file_location = await write_file(file)
+    image = Image.open(file_location)
+    result = ocr.get_reader().readtext(image, detail=0)
+    return {"ocr_text": f'{result}'}
 
 if __name__ == '__main__':
     uvicorn.run(app, host="127.0.0.1", port=8000)
