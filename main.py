@@ -26,7 +26,7 @@ async def home():
     return {"info": "Nothing to see here"}
 
 
-async def write_file(file):
+def write_file(file):
     # Create media folder if not exists
     if not os.path.exists("media"):
         try:
@@ -43,7 +43,7 @@ async def write_file(file):
 
 @app.post("/hwrc/")
 async def create_upload_file(file: UploadFile):
-    file_location = await write_file(file)
+    file_location = write_file(file)
     predict_handwriting = predict.predict_character(file_location)
     print(predict_handwriting)
     return {"predicted_handwriting": f'{predict_handwriting}'}
@@ -51,9 +51,9 @@ async def create_upload_file(file: UploadFile):
 
 @app.post("/ocr/")
 async def create_upload_file(file: UploadFile):
-    file_location = await write_file(file)
-    image = Image.open(file_location)
-    result = ocr.get_reader().readtext(image, detail=0)
+    file_location = write_file(file)
+    # image = Image.open(file_location)
+    result = ocr.get_reader().readtext(file_location, detail=0)
     return {"ocr_text": f'{result}'}
 
 if __name__ == '__main__':
