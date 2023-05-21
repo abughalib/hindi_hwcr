@@ -1,7 +1,6 @@
 import uvicorn
 from fastapi import FastAPI, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-import PIL.Image as Image
 import ocr
 import predict
 import os
